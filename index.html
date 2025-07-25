@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>홍콩크루즈 가보자(12단계)</title>
+    <style>
+        /* 기본 스타일은 이전과 동일 */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 950px;
+            width: 100%;
+            background-color: #2b2b2b;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        }
+        h1, h2 {
+            color: #f0f0f0;
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        /* 현재 상태 정보 섹션 */
+        .current-info {
+            background-color: #3a3a3a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.3);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .info-item {
+            padding: 10px;
+            border: 1px solid #4a4a4a;
+            border-radius: 5px;
+            background-color: #444;
+            text-align: center;
+        }
+        .info-item p {
+            margin: 5px 0;
+            font-size: 1.1em;
+        }
+        .info-item strong {
+            color: #d0d0d0;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .info-item span {
+            font-weight: bold;
+            font-size: 1.3em;
+            color: #ffe082; /* Light yellow for general info */
+        }
+        .info-item span.positive {
+            color: #4CAF50; /* Green for positive values */
+        }
+        .info-item span.negative {
+            color: #f44336; /* Red for negative values */
+        }
+        .info-item span.points { /* 포인트 전용 색상 */
+            color: #8BC34A; /* Light Green */
+        }
+
+
+        /* 액션 버튼 섹션 */
+        .actions {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .actions button {
+            padding: 12px 25px;
+            font-size: 1.1em;
+            margin: 0 5px; /* 버튼 간격 조정 */
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+        }
+        .win-btn {
+            background-color: #4CAF50; /* Green */
+            color: white;
+        }
+        .win-btn:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        .lose-btn {
+            background-color: #f44336; /* Red */
+            color: white;
+        }
+        .lose-btn:hover {
+            background-color: #da3226;
+            transform: translateY(-2px);
+        }
+        .prev-step-btn { /* 전단계 버튼 스타일 */
+            background-color: #FFC107; /* Amber */
+            color: #333;
+        }
+        .prev-step-btn:hover {
+            background-color: #FFA000;
+            transform: translateY(-2px);
+        }
+        .reset-btn {
+            background-color: #607d8b; /* Blue-grey */
+            color: white;
+        }
+        .reset-btn:hover {
+            background-color: #546e7a;
+            transform: translateY(-2px);
+        }
+
+        /* 메시지 표시 섹션 */
+        #message {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #444;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.1em;
+            color: #ffe082; /* Light yellow */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: none; /* Initially hidden */
+        }
+        #message.show {
+            display: block;
+        }
+
+        /* 베팅 단계 테이블 섹션 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            background-color: #3a3a3a;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        th, td {
+            border: 1px solid #4a4a4a;
+            padding: 12px;
+            text-align: center;
+            font-size: 0.95em;
+        }
+        th {
+            background-color: #555;
+            color: #f0f0f0;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #333;
+        }
+        tr:hover {
+            background-color: #4c4c4c;
+        }
+        .table-wrapper {
+            overflow-x: auto; /* 테이블이 너무 넓을 때 가로 스크롤 */
+            border-radius: 8px;
+        }
+
+        /* 면책 조항 스타일 */
+        .disclaimer {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #3a3a3a;
+            border-radius: 8px;
+            font-size: 0.9em;
+            color: #aaaaaa;
+            text-align: center;
+            border: 1px dashed #555;
+        }
+        .disclaimer strong {
+            color: #f44336; /* 빨간색으로 경고 강조 */
+        }
+
+        /* 모바일 최적화 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            .current-info {
+                grid-template-columns: 1fr; /* 모바일에서 한 열로 */
+            }
+            .actions button {
+                margin: 5px;
+                width: calc(50% - 10px); /* 두 버튼이 한 줄에 오도록 */
+            }
+            .actions button.reset-btn {
+                width: calc(100% - 20px); /* 리셋 버튼은 전체 너비 */
+            }
+             .actions button.prev-step-btn { /* 모바일에서 전단계 버튼도 전체 너비 */
+                width: calc(100% - 20px);
+            }
+            th, td {
+                padding: 8px 5px; /* 모바일에서 패딩 줄임 */
+                font-size: 0.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>홍콩크루즈 가보자(12단계)</h1>
+
+        <div class="current-info">
+            <div class="info-item">
+                <strong>현재 단계:</strong>
+                <span id="currentStep">1</span>
+            </div>
+            <div class="info-item">
+                <strong>다음 베팅 금액:</strong>
+                <span id="nextBetAmount">3</span>
+            </div>
+            <div class="info-item">
+                <strong>현재 턴 손익:</strong>
+                <span id="currentTurnProfit" class="positive">0</span>
+            </div>
+            <div class="info-item">
+                <strong>누적 손익:</strong>
+                <span id="cumulativeProfit" class="positive">0</span>
+            </div>
+            <div class="info-item">
+                <strong>연속 승리:</strong>
+                <span id="consecutiveWins">0</span>
+            </div>
+            <div class="info-item">
+                <strong>누적 적립 포인트:</strong>
+                <span id="accumulatedPoints" class="points">0</span>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="win-btn" onclick="handleBetResult('win')">승리</button>
+            <button class="lose-btn" onclick="handleBetResult('lose')">패배</button>
+            <button class="prev-step-btn" onclick="goToPreviousStep()">전단계</button> <button class="reset-btn" onclick="resetSystem()">초기화</button>
+        </div>
+
+        <div id="message" class=""></div>
+
+        <h2>베팅 단계 테이블 (12단계)</h2>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>단계</th>
+                        <th>패 (질 때)</th>
+                        <th>승 (이길 때)</th>
+                    </tr>
+                </thead>
+                <tbody id="bettingTableBody">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="disclaimer">
+            <strong>면책 조항:</strong> 본 시스템의 이용으로 발생하는 모든 결과에 대한 법적·재정적 책임은 이용자 본인에게 있으며, 운영자는 일체의 법적 책임을 지지 않습니다. 이 시스템은 시뮬레이션 목적으로만 사용되어야 합니다.
+        </div>
+    </div>
+
+    <script>
+        // 베팅 시스템 데이터 (홍콩크루즈25.pdf 파일 기반 - 12단계까지)
+        const bettingData = [
+            {"단계": 1, "패": 3, "승": 6, "targetWinProfit": 9},
+            {"단계": 2, "패": 4, "승": 8, "targetWinProfit": 9},
+            {"단계": 3, "패": 5, "승": 10, "targetWinProfit": 8},
+            {"단계": 4, "패": 7, "승": 14, "targetWinProfit": 9},
+            {"단계": 5, "패": 9, "승": 18, "targetWinProfit": 8},
+            {"단계": 6, "패": 12, "승": 24, "targetWinProfit": 8},
+            {"단계": 7, "패": 16, "승": 32, "targetWinProfit": 8},
+            {"단계": 8, "패": 21, "승": 42, "targetWinProfit": 7},
+            {"단계": 9, "패": 28, "승": 56, "targetWinProfit": 7},
+            {"단계": 10, "패": 37, "승": 74, "targetWinProfit": 6},
+            {"단계": 11, "패": 50, "승": 100, "targetWinProfit": 8},
+            {"단계": 12, "패": 67, "승": 134, "targetWinProfit": 9}
+        ];
+
+        // DOM 요소 참조
+        const currentStepSpan = document.getElementById('currentStep');
+        const nextBetAmountSpan = document.getElementById('nextBetAmount');
+        const currentTurnProfitSpan = document.getElementById('currentTurnProfit');
+        const cumulativeProfitSpan = document.getElementById('cumulativeProfit');
+        const consecutiveWinsSpan = document.getElementById('consecutiveWins');
+        const accumulatedPointsSpan = document.getElementById('accumulatedPoints');
+        const messageDiv = document.getElementById('message');
+        const bettingTableBody = document.getElementById('bettingTableBody');
+
+        // 게임 상태 변수
+        let currentStep = 1; // 현재 진행 단계 (패배 시 증가)
+        let cumulativeProfit = 0; // 누적 손익
+        let consecutiveWins = 0; // 연속 승리 횟수 (2연승 시 리셋)
+        let accumulatedPoints = 0; // 누적 적립 포인트
+        let currentBetAmount = bettingData[0]['패']; // 현재 베팅할 금액 (초기값: 1단계 '패' 금액)
+
+        // 상태 기록을 위한 스택
+        let history = []; 
+
+        /**
+         * 현재 시스템 상태를 기록합니다.
+         */
+        function saveState() {
+            history.push({
+                currentStep: currentStep,
+                cumulativeProfit: cumulativeProfit,
+                consecutiveWins: consecutiveWins,
+                accumulatedPoints: accumulatedPoints,
+                currentBetAmount: currentBetAmount
+            });
+            // 기록이 너무 길어지는 것을 방지하기 위해 제한
+            if (history.length > 20) { 
+                history.shift(); // 가장 오래된 기록 제거
+            }
+        }
+
+        /**
+         * 초기 로드 시 테이블 데이터를 채웁니다.
+         */
+        function populateTable() {
+            bettingTableBody.innerHTML = ''; // 기존 내용 지우기
+            bettingData.forEach(rowData => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${rowData.단계}</td>
+                    <td>${rowData.패}</td>
+                    <td>${rowData.승}</td>
+                `;
+                bettingTableBody.appendChild(row);
+            });
+        }
+
+        /**
+         * UI를 업데이트합니다.
+         */
+        function updateUI() {
+            currentStepSpan.innerText = currentStep;
+            nextBetAmountSpan.innerText = currentBetAmount; 
+
+            // 누적 손익 표시 및 색상 변경
+            if (cumulativeProfit > 0) {
+                cumulativeProfitSpan.innerText = `+${cumulativeProfit}`;
+                cumulativeProfitSpan.classList.remove('negative');
+                cumulativeProfitSpan.classList.add('positive');
+            } else if (cumulativeProfit < 0) {
+                cumulativeProfitSpan.innerText = cumulativeProfit;
+                cumulativeProfitSpan.classList.remove('positive');
+                cumulativeProfitSpan.classList.add('negative');
+            } else {
+                cumulativeProfitSpan.innerText = cumulativeProfit;
+                cumulativeProfitSpan.classList.remove('positive', 'negative');
+                cumulativeProfitSpan.style.color = '#ffe082'; /* 기본 색상 */
+            }
+
+            consecutiveWinsSpan.innerText = consecutiveWins;
+            accumulatedPointsSpan.innerText = accumulatedPoints; // 적립 포인트 업데이트
+        }
+
+        /**
+         * 메시지를 표시하고 일정 시간 후 숨깁니다.
+         * @param {string} msg - 표시할 메시지
+         * @param {number} duration - 메시지 표시 시간 (밀리초), 기본값 5000ms
+         */
+        function showMessage(msg, duration = 5000) {
+            messageDiv.innerText = msg;
+            messageDiv.classList.add('show');
+            // setTimeout(() => { // 팝업이 사라지지 않도록 이 줄을 주석 처리
+            //     messageDiv.classList.remove('show');
+            // }, duration);
+        }
+
+        /**
+         * 베팅 결과(승리/패배)를 처리합니다.
+         * @param {string} result - 'win' 또는 'lose'
+         */
+        function handleBetResult(result) {
+            // 현재 상태를 기록 (Undo를 위해)
+            saveState();
+
+            // 12단계가 마지막이므로, 12단계를 초과하면 더 이상 진행할 수 없음을 알림 (단, 12단계 패배 후 1단계로 리셋되는 경우는 제외)
+            if (currentStep > bettingData.length && result === 'win') { // 12단계 초과 상태에서 승리 클릭 시
+                showMessage('모든 단계를 완료했거나, 12단계 승리 후 다음 베팅 금액이 설정되어 있습니다. 초기화 버튼을 눌러주세요.');
+                return;
+            }
+
+            const betAmountThisTurn = currentBetAmount; // 현재 베팅 금액을 이 턴의 '패' 값으로 사용
+
+            if (result === 'win') {
+                // 승리 시 이득은 베팅 금액과 동일 (2배 획득 - 1배 베팅). 즉, net profit은 베팅 금액과 동일
+                const turnProfitFromBet = betAmountThisTurn; 
+
+                accumulatedPoints += turnProfitFromBet; // 적립 포인트는 실제 베팅 이득으로 항상 증가
+                cumulativeProfit += turnProfitFromBet; // 누적 손익에 실제 이득 반영
+                
+                consecutiveWins++; // 연속 승리 증가
+
+                let message = `${currentStep}단계에서 승리! (이득: ${turnProfitFromBet}, 적립 포인트: ${turnProfitFromBet}).`;
+
+                if (consecutiveWins >= 2) {
+                    message += ` 2연승 달성! 시스템 단계가 1단계로 재설정됩니다.`;
+                    currentStep = 1;
+                    currentBetAmount = bettingData[0]['패'];
+                    consecutiveWins = 0;
+                } else { // 2연승이 아닌 승리일 경우 (다음 단계로 넘어가지 않고 현재 단계 유지)
+                    message += ` 연속 승리: ${consecutiveWins}회.`;
+                    // 12단계 (마지막 단계)에서 승리했으나 2연승이 아닌 경우, 다음 베팅 금액을 해당 단계의 '승' 값으로 설정
+                    if (currentStep === bettingData.length) {
+                        currentBetAmount = bettingData[currentStep-1]['승']; // 12단계의 '승' 값인 134로 설정
+                    } else { // 12단계 미만일 때 (다른 단계) 2연승이 아닌 승리 시
+                       currentBetAmount = betAmountThisTurn * 2; // 다음 베팅 금액은 현재 베팅 금액의 2배
+                    }
+                }
+                
+                // 현재 턴 손익 UI 업데이트 (실제 베팅 이득을 표시)
+                currentTurnProfitSpan.innerText = turnProfitFromBet;
+                if (turnProfitFromBet > 0) {
+                    currentTurnProfitSpan.classList.remove('negative');
+                    currentTurnProfitSpan.classList.add('positive');
+                    currentTurnProfitSpan.style.color = '#4CAF50';
+                } else {
+                    currentTurnProfitSpan.classList.remove('positive', 'negative');
+                    currentTurnProfitSpan.style.color = '#ffe082';
+                }
+
+                updateUI(); // 전체 UI 업데이트
+                showMessage(message, 7000); // 관련 메시지 표시
+
+            } else if (result === 'lose') {
+                const turnLossFromBet = -betAmountThisTurn; // 패배 시 손실은 베팅 금액
+                cumulativeProfit += turnLossFromBet; // 누적 손익에 실제 손실 반영
+                consecutiveWins = 0; // 패배 시 연속 승리 초기화
+                
+                let message = `${currentStep}단계에서 패배! (손실: ${-turnLossFromBet}). 연속 승리가 초기화됩니다.`; // Message before incrementing step
+
+                if (currentStep === bettingData.length) { // 마지막 단계(12단계)에서 패배 시
+                    currentStep = 1; // 1단계로 재설정
+                    currentBetAmount = bettingData[0]['패']; // 1단계의 '패' 금액으로 설정
+                    message += ` 마지막 단계(${bettingData.length}단계)에서 패배하여 1단계로 재설정됩니다.`;
+                } else { // 12단계 미만에서 패배 시 다음 단계로 이동
+                    currentStep++; 
+                    currentBetAmount = bettingData[currentStep - 1]['패']; // 다음 베팅 금액은 다음 단계의 '패' 금액
+                }
+                showMessage(message);
+
+                // 현재 턴 손익 UI 업데이트 (실제 베팅 손실을 표시)
+                currentTurnProfitSpan.innerText = turnLossFromBet;
+                if (turnLossFromBet < 0) {
+                    currentTurnProfitSpan.classList.remove('positive');
+                    currentTurnProfitSpan.classList.add('negative');
+                    currentTurnProfitSpan.style.color = '#f44336';
+                } else {
+                    currentTurnProfitSpan.classList.remove('positive', 'negative');
+                    currentTurnProfitSpan.style.color = '#ffe082';
+                }
+                updateUI();
+            }
+        }
+
+        /**
+         * 시스템을 초기 상태로 리셋합니다.
+         */
+        function resetSystem() {
+            saveState(); // 초기화 전 현재 상태 저장 (이전으로 되돌릴 수 있도록)
+            currentStep = 1; // 1단계부터 다시 투자
+            cumulativeProfit = 0;
+            consecutiveWins = 0;
+            accumulatedPoints = 0; // 적립 포인트도 초기화
+            currentBetAmount = bettingData[0]['패']; // 초기 베팅 금액은 1단계의 '패' 금액
+
+            // 현재 턴 손익도 초기화
+            currentTurnProfitSpan.innerText = '0';
+            currentTurnProfitSpan.classList.remove('positive', 'negative');
+            currentTurnProfitSpan.style.color = '#ffe082';
+
+            updateUI();
+            showMessage('시스템이 초기화되었습니다. 1단계에서 다시 시작합니다.');
+        }
+
+        /**
+         * 시스템 단계를 이전 상태로 되돌립니다 (모든 결과값 포함).
+         */
+        function goToPreviousStep() {
+            if (history.length > 0) {
+                const prevState = history.pop(); // 가장 마지막 상태를 가져옴
+                currentStep = prevState.currentStep;
+                cumulativeProfit = prevState.cumulativeProfit;
+                consecutiveWins = prevState.consecutiveWins;
+                accumulatedPoints = prevState.accumulatedPoints;
+                currentBetAmount = prevState.currentBetAmount;
+                
+                // 현재 턴 손익은 이전 턴의 손익을 표시할 필요가 없으므로 0으로 설정
+                currentTurnProfitSpan.innerText = '0';
+                currentTurnProfitSpan.classList.remove('positive', 'negative');
+                currentTurnProfitSpan.style.color = '#ffe082';
+
+                updateUI();
+                showMessage(`이전 상태로 되돌아갔습니다. 현재 단계: ${currentStep}.`);
+            } else {
+                showMessage('더 이상 되돌아갈 기록이 없습니다.');
+            }
+        }
+
+        // 페이지 로드 시 초기 UI 업데이트 및 테이블 채우기
+        document.addEventListener('DOMContentLoaded', () => {
+            populateTable();
+            updateUI();
+            saveState(); // 초기 상태를 기록에 추가
+        });
+    </script>
+</body>
+</html>
